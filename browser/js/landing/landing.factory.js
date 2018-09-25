@@ -13,6 +13,26 @@ app.factory('LandingFactory', function ($http) {
         .then(users => users.data);
 	};
 
+	LandingFactory.getInstagramIdFromCookies = function() {
+		return chromep.cookies.getAll({domain: "instagram.com"})
+		.then(cookies => {
+			let correctId = null;
+			cookies.forEach(cookie => {
+				if (cookie.name === "ds_user_id") correctId = cookie.value;
+			});
+			return correctId;
+		});
+	};
+
+	LandingFactory.getInstagramUserData = function(instagramId) {
+		return $http.get(`https://i.instagram.com/api/v1/users/${instagramId}/info/`)
+		.then(response => response.data.user);
+	};
+
+	LandingFactory.getChromeUserData = function() {
+		return chromep.identity.getProfileUserInfo();
+	};
+
 
 	return LandingFactory;
 });
