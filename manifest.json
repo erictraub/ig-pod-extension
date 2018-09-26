@@ -22,22 +22,20 @@
 		"identity.email"
 	],
 	"content_scripts": [
-		// {
-		// 	"matches": [ "<all_urls>" ],
-		// 	"js": [ "scripts/content.js" ]
-		// },
 		{
-		  "all_frames": true,
-		  "js": ["scripts/content.js"],
-		  "matches": ["*://*/chrome-run-on-domain-*"],
-		  "run_at": "document_start"
+			"matches": [ "<all_urls>" ],
+			"js": [ "node_modules/jquery/dist/jquery.min.js" ]
+		},
+		{
+			"matches": [ "<all_urls>" ],
+			"js": [ "scripts/content.js" ]
 		}
 	],
 	"web_accessible_resources": [
 		"browser/assets/*"
 	],
 	"background": {
-		"scripts": [ "scripts/background.js" ],
+		"scripts": [ "node_modules/jquery/dist/jquery.js", "node_modules/chrome-promise/chrome-promise.js", "scripts/background.ceUtilFuncs.js", "scripts/background.js" ],
 		"persistent": true
 	}
 }
