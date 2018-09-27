@@ -6,11 +6,14 @@
 	ceUtilFuncs.retrieveAllUserDataAndPutInLocalStorage()
 	.then(user => {
 		console.log('User: ', user);
+		ceUtilFuncs.newPostChecker(user.user);
 	});
 
-
-	// next: setInterval for checking for new post every 30/60 secs
-	// newPost must have been posted within last 30/60 secs
+	// START: handle duplicate key error.  Just run this with jim logged in and create a post.
+	// will throw an error on the round after post added to db.  Handle this error and send message to FE
+	// saying post has already been liked.
+	// This happens becase we do not update the mostRecentPost property on the owner.  So update that
+	// property and push this new post into the owners postsToLike array.
 
 
 })();

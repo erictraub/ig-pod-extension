@@ -67,31 +67,32 @@
         .then(users => users);
 	};
 
+	// maybe pass in whole user obj so have access to the mongodbID
 	ceUtilFuncs.getMostRecentPost = function(username) {
 		return $.get('http://allorigins.me/get?url=' + encodeURIComponent(`https://www.instagram.com/${username}/`))
 		.then(response => {
 		  	rawPosts = JSON.parse(response.contents.split('window._sharedData = ')[1].split('\;\<\/script>')[0]).entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media.edges;
 			let mostRecentPost = {};
 			if (rawPosts[0]) {
-				mostRecentPost['raw'] = rawPosts[0].node,
-				mostRecentPost['image'] = rawPosts[0].node.display_url,
-				mostRecentPost['dimensions'] = rawPosts[0].node.dimensions,
-				mostRecentPost['likes'] = rawPosts[0].node.edge_liked_by.count,
-				mostRecentPost['caption'] = rawPosts[0].node.edge_media_to_caption.edges[0].node.text,
-				mostRecentPost['comments'] = rawPosts[0].node.edge_media_to_comment.count,
-				mostRecentPost['video'] = rawPosts[0].node.is_video,
-				mostRecentPost['code'] = rawPosts[0].node.shortcode,
-				mostRecentPost['url'] = `https://www.instagram.com/p/${rawPosts[0].node.shortcode}/`,
-				mostRecentPost['timestamp'] = rawPosts[0].node.taken_at_timestamp,
+				mostRecentPost['raw'] = rawPosts[0].node;
+				mostRecentPost['imageUrl'] = rawPosts[0].node.display_url;
+				mostRecentPost['dimensions'] = rawPosts[0].node.dimensions;
+				mostRecentPost['likes'] = rawPosts[0].node.edge_liked_by.count;
+				mostRecentPost['caption'] = rawPosts[0].node.edge_media_to_caption.edges[0].node.text;
+				mostRecentPost['comments'] = rawPosts[0].node.edge_media_to_comment.count;
+				mostRecentPost['video'] = rawPosts[0].node.is_video;
+				mostRecentPost['shortCode'] = rawPosts[0].node.shortcode;
+				mostRecentPost['postUrl'] = `https://www.instagram.com/p/${rawPosts[0].node.shortcode}/`;
+				mostRecentPost['timestamp'] = rawPosts[0].node.taken_at_timestamp * 1000;
 				mostRecentPost['thumbnails'] = {
 				    150: rawPosts[0].node.thumbnail_resources[0].src,
 				    240: rawPosts[0].node.thumbnail_resources[1].src,
 				    320: rawPosts[0].node.thumbnail_resources[2].src,
 				    480: rawPosts[0].node.thumbnail_resources[3].src,
 				    640: rawPosts[0].node.thumbnail_resources[4].src
-			  	}
+			  	};
 			}
-			return mostRecentPost.timestamp ? mostRecentPost : { timestamp: 0 };
+			return (mostRecentPost && mostRecentPost.timestamp) ? mostRecentPost : { timestamp: 0 };
 		});
 	};
 
@@ -115,7 +116,7 @@
 			return ceUtilFuncs.getChromeUserData();
 		}).then(userData => {
 			chromeUserData = userData;
-			console.log('igUserData', igUserData);
+			// console.log('igUserData', igUserData);
 			// console.log('chromeUserData', chromeUserData);
 			const user = {
 				instagramUsername: igUserData.username,
@@ -132,6 +133,31 @@
 		}).then(result => {
 			return userFromDB;
 		});
+	};
+
+	ceUtilFuncs.newPostChecker = function(userObj) {
+		const interval = 15 * 1000;
+		setInterval(function() {
+			ceUtilFuncs.getMostRecentPost(userObj.instagramUsername)
+			.then(mostRecentPost => {
+				console.log('Most recent post: ', mostRecentPost);
+				// if (Date.now() - Number(userObj.mostRecentPost.timestamp) <= interval + 1000) {  // will check if a post was created between each interval
+				if ((mostRecentPost.timestamp > userObj.mostRecentPost) && (Date.now() - Number(mostRecentPost.timestamp) <= 120000)) {  // will check if a post was created more recently then the last one in the DB for this user (and was posted within the last 2 mins)
+					console.log('New post detected.')
+					mostRecentPost.owner = userObj['_id'];
+					ceUtilFuncs.sendNewPostToLike(mostRecentPost);
+				} else {
+					console.log('No new post detected.')
+				}
+			});
+		}, interval)
+	}
+
+	ceUtilFuncs.sendNewPostToLike = function(post) {
+        return $.post(base +'/api/posts/new-post-to-like', post)
+        .then(post => {
+        	console.log('Post added to DB: ', post);
+        });		
 	};
 
 
