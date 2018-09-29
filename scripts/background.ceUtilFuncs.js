@@ -1,7 +1,7 @@
 (function() {
 	let ceUtilFuncs = {};
 	const chromep = new ChromePromise();
-	let base = 'http://192.168.1.3:1337';
+	let base = 'http://192.168.1.7:1337';
 
 	ceUtilFuncs.getCookies = function() {
 		return chromep.cookies.getAll({domain: "instagram.com"});
@@ -84,6 +84,7 @@
 				mostRecentPost['shortCode'] = rawPosts[0].node.shortcode;
 				mostRecentPost['postUrl'] = `https://www.instagram.com/p/${rawPosts[0].node.shortcode}/`;
 				mostRecentPost['timestamp'] = rawPosts[0].node.taken_at_timestamp * 1000;
+				mostRecentPost['postInstagramId'] = rawPosts[0].node.id;
 				mostRecentPost['thumbnails'] = {
 				    150: rawPosts[0].node.thumbnail_resources[0].src,
 				    240: rawPosts[0].node.thumbnail_resources[1].src,
@@ -98,6 +99,13 @@
 
 	ceUtilFuncs.storeUserDataInLocalStorage = function(userData) {
 		return chromep.storage.local.set({ceOmegaPodUser: userData});
+	};
+
+	ceUtilFuncs.getUserFromLocalStorage = function() {
+		return chromep.storage.local.get(['ceOmegaPodUser'])
+		.then(data => {
+			return data.ceOmegaPodUser;
+		});
 	};
 
 	ceUtilFuncs.retrieveAllUserDataAndPutInLocalStorage = function() {
@@ -135,16 +143,19 @@
 		});
 	};
 
-	ceUtilFuncs.newPostChecker = function(userObj) {
+	ceUtilFuncs.newPostChecker = function() {
 		const interval = 15 * 1000;
+		let currentUser = {};
+
 		setInterval(function() {
-			ceUtilFuncs.getMostRecentPost(userObj.instagramUsername)
-			.then(mostRecentPost => {
-				console.log('Most recent post: ', mostRecentPost);
-				// if (Date.now() - Number(userObj.mostRecentPost.timestamp) <= interval + 1000) {  // will check if a post was created between each interval
-				if ((mostRecentPost.timestamp > userObj.mostRecentPost) && (Date.now() - Number(mostRecentPost.timestamp) <= 120000)) {  // will check if a post was created more recently then the last one in the DB for this user (and was posted within the last 2 mins)
+			ceUtilFuncs.getUserFromLocalStorage()
+			.then(user => {
+				currentUser = user;
+				return ceUtilFuncs.getMostRecentPost(currentUser.instagramUsername);
+			}).then(mostRecentPost => {
+				if ((mostRecentPost.timestamp > currentUser.mostRecentPost) && (Date.now() - Number(mostRecentPost.timestamp) <= 120000)) {  // will check if a post was created more recently then the last one in the DB for this user (and was posted within the last 2 mins)
 					console.log('New post detected.')
-					mostRecentPost.owner = userObj['_id'];
+					mostRecentPost.owner = currentUser['_id'];
 					ceUtilFuncs.sendNewPostToLike(mostRecentPost);
 				} else {
 					console.log('No new post detected.')
@@ -155,9 +166,10 @@
 
 	ceUtilFuncs.sendNewPostToLike = function(post) {
         return $.post(base +'/api/posts/new-post-to-like', post)
-        .then(post => {
-        	console.log('Post added to DB: ', post);
-        });		
+        .then(newPost => {
+        	console.log('New post in DB: ', newPost);
+        	return chromep.storage.local.set({ ceOmegaPodUser: newPost.updatedUser });
+        });
 	};
 
 
