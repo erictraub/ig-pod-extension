@@ -35,7 +35,7 @@
 		"browser/assets/*"
 	],
 	"background": {
-		"scripts": [ "node_modules/jquery/dist/jquery.js", "node_modules/chrome-promise/chrome-promise.js", "scripts/background.ceUtilFuncs.js", "scripts/background.js" ],
+		"scripts": [ "node_modules/socket.io-client/dist/socket.io.js", "node_modules/jquery/dist/jquery.js", "node_modules/chrome-promise/chrome-promise.js", "scripts/background.ceUtilFuncs.js", "scripts/background.js" ],
 		"persistent": true
 	}
 }
