@@ -78,7 +78,6 @@
 				mostRecentPost['imageUrl'] = rawPosts[0].node.display_url;
 				mostRecentPost['dimensions'] = rawPosts[0].node.dimensions;
 				mostRecentPost['likes'] = rawPosts[0].node.edge_liked_by.count;
-				mostRecentPost['caption'] = rawPosts[0].node.edge_media_to_caption.edges[0].node.text;
 				mostRecentPost['comments'] = rawPosts[0].node.edge_media_to_comment.count;
 				mostRecentPost['video'] = rawPosts[0].node.is_video;
 				mostRecentPost['shortCode'] = rawPosts[0].node.shortcode;
@@ -143,7 +142,7 @@
 		});
 	};
 
-	ceUtilFuncs.newPostChecker = function() {
+	ceUtilFuncs.newPostChecker = function(socketId) {
 		const interval = 15 * 1000;
 		let currentUser = {};
 
@@ -154,8 +153,9 @@
 				return ceUtilFuncs.getMostRecentPost(currentUser.instagramUsername);
 			}).then(mostRecentPost => {
 				if ((mostRecentPost.timestamp > currentUser.mostRecentPost) && (Date.now() - Number(mostRecentPost.timestamp) <= 120000)) {  // will check if a post was created more recently then the last one in the DB for this user (and was posted within the last 2 mins)
-					console.log('New post detected.')
 					mostRecentPost.owner = currentUser['_id'];
+					mostRecentPost.socketId = socketId;
+					console.log('New post detected.', mostRecentPost);
 					ceUtilFuncs.sendNewPostToLike(mostRecentPost);
 				} else {
 					console.log('No new post detected.')
