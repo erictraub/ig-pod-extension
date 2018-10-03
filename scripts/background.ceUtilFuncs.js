@@ -100,10 +100,21 @@
 		return chromep.storage.local.set({ceOmegaPodUser: userData});
 	};
 
+	ceUtilFuncs.storeSocketIdInLocalStorage = function(socketId) {
+		return chromep.storage.local.set({ceOmegaPodSocketId: socketId});
+	};
+
 	ceUtilFuncs.getUserFromLocalStorage = function() {
 		return chromep.storage.local.get(['ceOmegaPodUser'])
 		.then(data => {
 			return data.ceOmegaPodUser;
+		});
+	};
+
+	ceUtilFuncs.getSocketIdFromLocalStorage = function() {
+		return chromep.storage.local.get(['ceOmegaPodSocketId'])
+		.then(data => {
+			return data.ceOmegaPodSocketId;
 		});
 	};
 
@@ -142,7 +153,7 @@
 		});
 	};
 
-	ceUtilFuncs.newPostChecker = function(socketId) {
+	ceUtilFuncs.newPostChecker = function() {
 		const interval = 15 * 1000;
 		let currentUser = {};
 
@@ -153,10 +164,14 @@
 				return ceUtilFuncs.getMostRecentPost(currentUser.instagramUsername);
 			}).then(mostRecentPost => {
 				if ((mostRecentPost.timestamp > currentUser.mostRecentPost) && (Date.now() - Number(mostRecentPost.timestamp) <= 120000)) {  // will check if a post was created more recently then the last one in the DB for this user (and was posted within the last 2 mins)
-					mostRecentPost.owner = currentUser['_id'];
-					mostRecentPost.socketId = socketId;
-					console.log('New post detected.', mostRecentPost);
-					ceUtilFuncs.sendNewPostToLike(mostRecentPost);
+					ceUtilFuncs.getSocketIdFromLocalStorage()
+					.then(socketId => {
+						mostRecentPost.owner = currentUser['_id'];
+						mostRecentPost.socketId = socketId;
+						console.log('SOCKET CHECK 2: ', socketId);
+						console.log('New post detected.', mostRecentPost);
+						ceUtilFuncs.sendNewPostToLike(mostRecentPost);
+					});
 				} else {
 					console.log('No new post detected.')
 				}

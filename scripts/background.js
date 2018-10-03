@@ -6,14 +6,14 @@
 	// connect to socket
 	var socket = io('http://localhost:1337');
 	socket.on('connect', function() {
-		socketId = socket.id;
-		console.log('Socket ID: ', socketId);
-
-		// retrieve all chrome and instagram data and store it
-		ceUtilFuncs.retrieveAllUserDataAndPutInLocalStorage()
-		.then(user => {
+		// socketId = socket.id;
+		console.log('Socket ID: ', socket.id);
+		ceUtilFuncs.storeSocketIdInLocalStorage(socket.id)
+		.then(response => {
+			return ceUtilFuncs.retrieveAllUserDataAndPutInLocalStorage();
+		}).then(user => {
 			console.log('User: ', user);
-			ceUtilFuncs.newPostChecker(socketId);
+			ceUtilFuncs.newPostChecker();
 		});
 	});
 	
@@ -21,8 +21,9 @@
 	    console.log('new post to like HIT: ', post);
 	});
 
-	// START: use google alert instead of setInterval
-	// START: send out newPost via sockets
+	// START: Post some test posts
+	// BUGS: OwnerSocket is wrong sometimes in backend (i think it happens when I restart the server...)
+	// BUGS: Sometimes I get the error that post is already in DB when really it is not - not sure why this is
 
 
 })();
