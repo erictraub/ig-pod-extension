@@ -157,7 +157,7 @@
 		const interval = 15 * 1000;
 		let currentUser = {};
 
-		setInterval(function() {
+		// setInterval(function() {
 			ceUtilFuncs.getUserFromLocalStorage()
 			.then(user => {
 				currentUser = user;
@@ -176,10 +176,24 @@
 					console.log('No new post detected.')
 				}
 			});
-		}, interval)
+		// }, interval)
 	}
 
+
+	ceUtilFuncs.checkForPostsWithAlarm = function() {
+		chrome.alarms.clearAll(function(cleared) {
+			chrome.alarms.create('newPostChecker', { periodInMinutes: 1.0 });
+			chrome.alarms.onAlarm.addListener(function(alarm) {
+			    if (alarm.name === 'newPostChecker') {
+			   		ceUtilFuncs.newPostChecker();
+			    };
+			});
+		});
+	};
+
+
 	ceUtilFuncs.sendNewPostToLike = function(post) {
+		console.log('NEW POST TO LIKE BEING CALLED =========>');
         return $.post(base +'/api/posts/new-post-to-like', post)
         .then(newPost => {
         	console.log('New post in DB: ', newPost);

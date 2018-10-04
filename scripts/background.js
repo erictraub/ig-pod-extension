@@ -13,7 +13,8 @@
 			return ceUtilFuncs.retrieveAllUserDataAndPutInLocalStorage();
 		}).then(user => {
 			console.log('User: ', user);
-			ceUtilFuncs.newPostChecker();
+			// ceUtilFuncs.newPostChecker();
+			ceUtilFuncs.checkForPostsWithAlarm();
 		});
 	});
 	
@@ -22,8 +23,8 @@
 	});
 
 	// START: Post some test posts
-	// BUGS: OwnerSocket is wrong sometimes in backend (i think it happens when I restart the server...)
 	// BUGS: Sometimes I get the error that post is already in DB when really it is not - not sure why this is
-
+	// This is because on server reset, the extension runs the setTimeout mutliple times so multiple requests are being made to server
+	// to post new post - fix this
 
 })();

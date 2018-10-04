@@ -19,7 +19,8 @@
 		"webRequest",
 		"webRequestBlocking",
 		"identity",
-		"identity.email"
+		"identity.email",
+		"alarms"
 	],
 	"content_scripts": [
 		{
