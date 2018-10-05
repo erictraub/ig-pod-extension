@@ -14,7 +14,7 @@
 		}).then(user => {
 			console.log('User: ', user);
 			// ceUtilFuncs.newPostChecker();
-			ceUtilFuncs.checkForPostsWithAlarm();
+			ceUtilFuncs.checkForNewPostWithAlarm();
 		});
 	});
 	
@@ -26,5 +26,5 @@
 	// BUGS: Sometimes I get the error that post is already in DB when really it is not - not sure why this is
 	// This is because on server reset, the extension runs the setTimeout mutliple times so multiple requests are being made to server
 	// to post new post - fix this
-
+	// THIS STILL HAPPENS WITH CHRME ALARMS!!! ^^
 })();

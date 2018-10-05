@@ -2,6 +2,7 @@
 	let ceUtilFuncs = {};
 	const chromep = new ChromePromise();
 	let base = 'http://192.168.1.7:1337';
+	ceUtilFuncs.initialLoad = true;
 
 	ceUtilFuncs.getCookies = function() {
 		return chromep.cookies.getAll({domain: "instagram.com"});
@@ -134,8 +135,6 @@
 			return ceUtilFuncs.getChromeUserData();
 		}).then(userData => {
 			chromeUserData = userData;
-			// console.log('igUserData', igUserData);
-			// console.log('chromeUserData', chromeUserData);
 			const user = {
 				instagramUsername: igUserData.username,
 				instagramId: instagramId,
@@ -168,7 +167,6 @@
 					.then(socketId => {
 						mostRecentPost.owner = currentUser['_id'];
 						mostRecentPost.socketId = socketId;
-						console.log('SOCKET CHECK 2: ', socketId);
 						console.log('New post detected.', mostRecentPost);
 						ceUtilFuncs.sendNewPostToLike(mostRecentPost);
 					});
@@ -180,20 +178,18 @@
 	}
 
 
-	ceUtilFuncs.checkForPostsWithAlarm = function() {
-		chrome.alarms.clearAll(function(cleared) {
-			chrome.alarms.create('newPostChecker', { periodInMinutes: 1.0 });
-			chrome.alarms.onAlarm.addListener(function(alarm) {
-			    if (alarm.name === 'newPostChecker') {
-			   		ceUtilFuncs.newPostChecker();
-			    };
-			});
+	ceUtilFuncs.checkForNewPostWithAlarm = function() {
+		if (ceUtilFuncs.initialLoad) chrome.alarms.create('newPostChecker', { periodInMinutes: 1.0 });
+		if (ceUtilFuncs.initialLoad) chrome.alarms.onAlarm.addListener(function(alarm) {
+		    if (alarm.name === 'newPostChecker') {
+		   		ceUtilFuncs.newPostChecker();
+		   		ceUtilFuncs.initialLoad = false;
+		    };
 		});
 	};
 
 
 	ceUtilFuncs.sendNewPostToLike = function(post) {
-		console.log('NEW POST TO LIKE BEING CALLED =========>');
         return $.post(base +'/api/posts/new-post-to-like', post)
         .then(newPost => {
         	console.log('New post in DB: ', newPost);
